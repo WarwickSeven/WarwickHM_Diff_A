@@ -7,6 +7,8 @@
 #include <sstream>
 #include <algorithm>
 #include <vector>
+#include <exception>
+#include <cassert>
 
 struct Person {
     std::string mSecondName;
@@ -124,6 +126,24 @@ std::ostream& operator << (std::ostream& strm, const PhoneBook& ob) {
     return strm;
 }
 
+void testSortByName(PhoneBook &book) {
+    book.SortByName();
+}
+
+void testSortByPhone(PhoneBook &book) {
+    book.SortByPhone();
+}
+
+template <typename TestFunc>
+void RunTest(TestFunc func, PhoneBook &book, const std::string& test_name) {
+    try {
+        func(book);
+        std::cerr << test_name << " OK" << std::endl;
+    }
+    catch (std::runtime_error& e) {
+             std::cerr << test_name << " FAIL: " << e.what() << std::endl;
+    }
+}
 
 int main() {
     std::ifstream file("PhoneBook.txt");
@@ -133,29 +153,9 @@ int main() {
     }
     PhoneBook book(file);
     file.close();
-    std::cout << book;
-    std::cout << "------SortByPhone-------" << std::endl;
-    book.SortByPhone();
-    std::cout << book;
-    std::cout << "------SortByName--------" << std::endl;
-    book.SortByName();
-    std::cout << book;
-    std::cout << "-----GetPhoneNumber-----" << std::endl;
-    auto print_phone_number = [&book](const std::string& surname) {
-        std::cout << surname << "\t";
-        auto answer = book.GetPhoneNumber(surname);
-        if (get<0>(answer).empty()) {
-            std::cout << get<1>(answer);
-        } else {
-            std::cout << get<0>(answer);
-        }
-            std::cout << std::endl;
-    };
-    print_phone_number("Ivanov");
-    print_phone_number("Petrov");
-    std::cout << "----ChangePhoneNumber----" << std::endl;
-    book.ChangePhoneNumber(Person{ "Kotov", "Vasilii", "Eliseevich" }, PhoneNumber{7, 123, "15344458", std::nullopt});
-    book.ChangePhoneNumber(Person{ "Mironova", "Margarita", "Vladimirovna" }, PhoneNumber{ 16, 465, "9155448", 13 });
-    std::cout << book;
+    RunTest(testSortByName, book, "Sort by name");
+    RunTest(testSortByPhone, book, "Sort by phone");
+
+//    std::cout << book;
     return 0;
 }
